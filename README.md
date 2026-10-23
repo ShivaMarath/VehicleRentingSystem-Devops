@@ -13,7 +13,7 @@ App server runs: frontend(nginx) · backend · mongo · prometheus · grafana ·
 Run every command below inside **WSL (Ubuntu)**, and keep the project inside the Linux
 filesystem (e.g. `~/vehicle-rental`), NOT under `/mnt/c`, otherwise SSH key permissions break.
 
-## 0. One-time tools (WSL Ubuntu)
+## 0. One-time tools 
 ```bash
 sudo apt update && sudo apt install -y git curl unzip ansible nodejs npm
 # Terraform
