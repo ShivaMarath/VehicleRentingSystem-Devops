@@ -1,0 +1,55 @@
+# Deploys the app + monitoring stack to the app server.
+# Run manually:  ansible-playbook deploy.yml -e dockerhub_user=YOURUSER -e image_tag=latest
+# Jenkins runs it with:  -e target=all
+- name: Deploy vehicle rental stack
+  hosts: "{{ target | default('app') }}"
+  become: true
+  vars:
+    app_dir: /opt/vehicle-rental
+    dockerhub_user: "{{ lookup('env', 'DOCKERHUB_USER') }}"
+    image_tag: latest
+    grafana_password: admin
+  tasks:
+    - name: Create app directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy docker-compose.yml
+      copy:
+        src: ../docker-compose.yml
+        dest: "{{ app_dir }}/docker-compose.yml"
+
+    - name: Copy monitoring configs
+      copy:
+        src: ../monitoring/
+        dest: "{{ app_dir }}/monitoring/"
+
+    - name: Write .env
+      copy:
+        dest: "{{ app_dir }}/.env"
+        mode: '0600'
+        content: |
+          DOCKERHUB_USER={{ dockerhub_user }}
+          TAG={{ image_tag }}
+          GRAFANA_PASSWORD={{ grafana_password }}
+
+    - name: Pull images
+      command: docker compose pull backend frontend
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Start / update stack
+      command: docker compose up -d --remove-orphans
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Wait for the app to answer
+      uri:
+        url: "http://localhost/api/health"
+        status_code: 200
+      register: health
+      retries: 15
+      delay: 4
+      until: health.status == 200

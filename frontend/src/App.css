@@ -1,0 +1,20 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #f4f6f8; color: #222; }
+.container { max-width: 960px; margin: 0 auto; padding: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.card { background: #fff; border-radius: 10px; padding: 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+.emoji { font-size: 40px; }
+.price { font-weight: 700; color: #0a7; }
+button { background: #2563eb; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+button.secondary { background: #6b7280; }
+button.danger { background: #dc2626; }
+.panel { background: #fff; padding: 16px; border-radius: 10px; margin: 16px 0; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+form { display: grid; gap: 10px; }
+input { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
+.row { display: flex; gap: 8px; }
+table { width: 100%; background: #fff; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
+th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+.msg { padding: 10px; border-radius: 6px; margin: 10px 0; }
+.msg.ok { background: #dcfce7; } .msg.error { background: #fee2e2; }
+.active { color: #059669; font-weight: 600; } .cancelled { color: #9ca3af; }
+@media (max-width: 600px) { table { display: block; overflow-x: auto; } }

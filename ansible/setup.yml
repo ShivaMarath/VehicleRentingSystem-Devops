@@ -1,0 +1,91 @@
+# Prepares both servers: Docker on all, Jenkins + Ansible on the Jenkins server
+- name: Install Docker on all servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name: [ca-certificates, curl, gnupg, git]
+        state: present
+        update_cache: true
+
+    - name: Add Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Add Docker apt repository
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker Engine and Compose plugin
+      apt:
+        name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+        state: present
+        update_cache: true
+
+    - name: Enable Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Let ubuntu user run docker
+      user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+- name: Install Jenkins
+  hosts: jenkins
+  become: true
+  tasks:
+    - name: Install Java 17 and Ansible
+      apt:
+        name: [openjdk-17-jre, ansible]
+        state: present
+
+    - name: Add Jenkins GPG key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+        mode: '0644'
+
+    - name: Add Jenkins apt repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        state: present
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+        update_cache: true
+
+    - name: Let jenkins user run docker
+      user:
+        name: jenkins
+        groups: docker
+        append: true
+
+    - name: Start and enable Jenkins
+      service:
+        name: jenkins
+        state: restarted
+        enabled: true
+
+    - name: Wait for Jenkins to generate the admin password
+      wait_for:
+        path: /var/lib/jenkins/secrets/initialAdminPassword
+        timeout: 120
+
+    - name: Read initial admin password
+      command: cat /var/lib/jenkins/secrets/initialAdminPassword
+      register: jenkins_password
+      changed_when: false
+
+    - name: Show Jenkins initial admin password
+      debug:
+        msg: "Jenkins initial admin password: {{ jenkins_password.stdout }}"
